@@ -1,0 +1,68 @@
+import { App, GenericMessageEvent } from "@slack/bolt";
+import { OpenAiClient } from "./OpenAi";
+
+export class SlackBotApp {
+  app: App;
+  botUserId: string;
+  openai: OpenAiClient;
+
+  constructor() {
+    this.app = new App({
+      signingSecret: process.env.SLACK_SIGNING_SECRET,
+      appToken: process.env.SLACK_APP_TOKEN,
+      token: process.env.SLACK_BOT_TOKEN,
+      socketMode: true,
+    });
+    this.openai = new OpenAiClient(process.env.OPENAI_KEY);
+  }
+
+  async init() {
+    await this.setBotUserId();
+    this.setupCallbacks();
+    return this.app.start();
+  }
+
+  private setupCallbacks() {
+    this.app.message(`<@${this.botUserId}>`,
+      async ({ say, message, client }) => {
+        const m = message as GenericMessageEvent;
+
+        console.log("Receiving message:", m.text);
+
+        const prompts: string[] = [];
+
+        // If the message is a top level comment
+        if (!m.thread_ts) {
+          prompts.push(m.text);
+        } else {
+          // Get all the messages in the thread
+          const conversationId = message.channel;
+          const threadId = m.thread_ts;
+
+          const result = await client.conversations.replies({
+            channel: conversationId,
+            ts: threadId,
+          });
+          const messages = result.messages || [];
+
+          prompts.push(...messages.map((m) => m.text));
+        }
+        const response = await this.openai.getChat(prompts);
+        // const json = JSON.stringify(m, null, 2);
+        // const response = '```\n' + json + '\n```';
+        say({
+          text: response,
+          thread_ts: m.thread_ts || undefined,
+          channel: m.thread_ts ? undefined : m.channel
+        });
+      }
+    );
+  }
+
+  private async setBotUserId(): Promise<void> {
+    const authResult = await this.app.client.auth.test({
+      token: process.env.SLACK_BOT_TOKEN,
+    });
+    this.botUserId = authResult.user_id;
+  }
+}
