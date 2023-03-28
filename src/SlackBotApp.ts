@@ -23,7 +23,8 @@ export class SlackBotApp {
   }
 
   private setupCallbacks() {
-    this.app.message(`<@${this.botUserId}>`,
+    this.app.message(
+      `<@${this.botUserId}>`,
       async ({ say, message, client }) => {
         const m = message as GenericMessageEvent;
 
@@ -47,16 +48,63 @@ export class SlackBotApp {
 
           prompts.push(...messages.map((m) => m.text));
         }
-        const response = await this.openai.getChat(prompts);
-        // const json = JSON.stringify(m, null, 2);
-        // const response = '```\n' + json + '\n```';
-        say({
-          text: response,
-          thread_ts: m.thread_ts || undefined,
-          channel: m.thread_ts ? undefined : m.channel
-        });
+
+        try {
+          const response = await this.openai.getChat(prompts);
+
+          say({
+            text: response,
+            thread_ts: m.thread_ts || undefined,
+            channel: m.thread_ts ? undefined : m.channel,
+          });
+        } catch (error) {
+          console.error(error);
+          // Handle any errors that may occur
+          await say({
+            text: "Oops! Something went wrong. Please try again later.",
+            thread_ts: m.thread_ts || undefined,
+            channel: m.thread_ts ? undefined : m.channel,
+          });
+        }
       }
     );
+
+    this.app.command("/image", async ({ command, ack, say }) => {
+      console.log("Generating image", command.text);
+      try {
+        // Acknowledge the command request
+        await ack();
+
+        const text = command.text.replace(`<@${this.botUserId}>`, "").trim();
+        const image_url = await this.openai.getImage(text);
+        const summary = 'Your Image'
+
+        say({
+          text: 'Here it is!',
+          blocks: [
+            {
+              type: "image",
+              title: {
+                type: "plain_text",
+                text: summary,
+                // emoji: true,
+              },
+              image_url,
+              alt_text: text,
+            },
+          ],
+          // text: summary,
+          channel: command.channel_id,
+        });
+      } catch (error) {
+        console.error(error);
+        // Handle any errors that may occur
+        await say({
+          text: "Oops! Something went wrong. Please try again later.",
+          channel: command.channel_id,
+        });
+      }
+    });
   }
 
   private async setBotUserId(): Promise<void> {
