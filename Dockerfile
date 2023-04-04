@@ -13,5 +13,8 @@ RUN npm install -g pnpm && pnpm install
 # Copy the rest of the project files to the container
 COPY . .
 
-# Set the container's default command to run the application
-CMD ["npm", "start"]
+# Build
+RUN npm run build
+
+# Run
+CMD ["node", "build/index.js"]
