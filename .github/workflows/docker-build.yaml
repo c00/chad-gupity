@@ -30,7 +30,7 @@ jobs:
       with:
         version: v1.22.13
     - name: Write to file
-      run: echo $KUBECONFIG | base64 --decode > .kube/config
+      run: mkdir -p ~/.kube && echo $KUBECONFIG | base64 --decode > ~/.kube/config
       env:
         KUBECONFIG: ${{ secrets.KUBECONFIG }}
     - name: get kubectl version
