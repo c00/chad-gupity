@@ -1,5 +1,6 @@
 import { App, GenericMessageEvent, SayFn } from "@slack/bolt";
-import { OpenAiClient } from "./OpenAi";
+import { ChatInput, OpenAiClient } from "./OpenAi";
+import { ChatCompletionRequestMessage } from "openai";
 
 export class SlackBotApp {
   app: App;
@@ -23,7 +24,7 @@ export class SlackBotApp {
   }
 
   private stripMentions(text: string) {
-    return text.replace(`<@${this.botUserId}>`, '').trim();
+    return text.replace(`<@${this.botUserId}>`, "").trim();
   }
 
   private async respondWithChatCompletion(m: GenericMessageEvent, say: SayFn) {
@@ -31,7 +32,7 @@ export class SlackBotApp {
 
     console.log("Receiving message:", text);
 
-    const prompts: string[] = [];
+    const prompts: ChatInput[] = [];
 
     // If the message is a top level comment
     if (!m.thread_ts) {
@@ -47,7 +48,12 @@ export class SlackBotApp {
       });
       const messages = result.messages || [];
 
-      prompts.push(...messages.map((m) => this.stripMentions(m.text)));
+      const input: ChatCompletionRequestMessage[] = messages.map((m) => ({
+        role: m.user === this.botUserId ? "assistant" : "user",
+        content: this.stripMentions(m.text),
+      }));
+
+      prompts.push(...input);
     }
 
     try {
@@ -63,6 +69,8 @@ export class SlackBotApp {
       await say({
         text: "Oops! Something went wrong. Please try again later.",
         thread_ts: m.thread_ts || m.ts,
+      }).catch(() => {
+        console.error("Even the error went wrong.");
       });
     }
   }
@@ -113,6 +121,8 @@ export class SlackBotApp {
         await say({
           text: "Oops! Something went wrong. Please try again later.",
           channel: command.channel_id,
+        }).catch(() => {
+          console.error("Even the error went wrong.");
         });
       }
     });

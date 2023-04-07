@@ -23,11 +23,10 @@ export class OpenAiClient {
     return response.data.data[0].url;
   }
 
-  async getChat(input: string[]): Promise<string> {
-    const messages: ChatCompletionRequestMessage[] = input.map((m) => ({
-      role: "user",
-      content: m,
-    }));
+  async getChat(
+    input: ChatInput[]
+  ): Promise<string> {
+    const messages = createMessages(input);
 
     const completion = await this.openai.createChatCompletion({
       model: "gpt-3.5-turbo",
@@ -41,3 +40,16 @@ export class OpenAiClient {
     return completion.data.choices[0].message.content;
   }
 }
+
+function createMessages(
+  input: ChatInput[]
+): ChatCompletionRequestMessage[] {
+  if (!input) return [];
+
+  return input.map((i) => {
+    if (typeof i === "string") return { role: "user", content: i.trim() };
+    return i;
+  });
+}
+
+export type ChatInput = string | ChatCompletionRequestMessage;
