@@ -34,6 +34,6 @@ jobs:
       env:
         KUBECONFIG: ${{ secrets.KUBECONFIG }}
     - name: Update Deployment Image
-      run: kubectl set image deployment/chad-gupity chad-gupity=${{ github.sha }}
+      run: kubectl set image deployment/chad-gupity chad-gupity=crispyduck/chad-gupity:${{ github.sha }}
     - name: Monitor Rollout Status
       run: kubectl rollout status deployment chad-gupity
