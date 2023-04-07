@@ -28,7 +28,7 @@ jobs:
     steps:
     - uses: azure/setup-kubectl@v3
       with:
-        version: 1.22.13
+        version: v1.22.13
     - name: Write to file
       run: echo $KUBECONFIG | base64 --decode > .kube/config
       env:
