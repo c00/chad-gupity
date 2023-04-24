@@ -4,7 +4,8 @@ export class OpenAiClient {
   configuration: Configuration;
   openai: OpenAIApi;
 
-  systemMessage = "You are a helpful SlackBot";
+  systemMessage =
+    process.env.GPT_SYSTEM_MESSAGE || "You are a helpful SlackBot";
 
   constructor(apiKey: string) {
     this.configuration = new Configuration({
@@ -26,7 +27,11 @@ export class OpenAiClient {
   async getChat(input: ChatInput[], useGpt4 = false): Promise<string> {
     const messages = createMessages(input);
 
-    if (useGpt4) console.log('Using GPT-4');    
+    if (useGpt4) {
+      console.log("Using GPT-4");
+    } else {
+      console.log("Using GPT-3.5");
+    }
 
     const completion = await this.openai.createChatCompletion({
       model: useGpt4 ? "gpt-4" : "gpt-3.5-turbo",

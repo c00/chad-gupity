@@ -128,6 +128,16 @@ export class SlackBotApp {
         });
       }
     });
+
+    this.app.command("/system-message", async ({ command, ack }) => {
+      if (!command.text.trim()) {
+        ack(`Current System message: ${this.openai.systemMessage}\n\nTo change use /system-message [new system message]`);
+        return;
+      }
+
+      this.openai.systemMessage = command.text.trim();
+      await ack(`System message set to: ${this.openai.systemMessage}`);
+    });
   }
 
   private async setBotUserId(): Promise<void> {
