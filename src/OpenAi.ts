@@ -23,13 +23,13 @@ export class OpenAiClient {
     return response.data.data[0].url;
   }
 
-  async getChat(
-    input: ChatInput[]
-  ): Promise<string> {
+  async getChat(input: ChatInput[], useGpt4 = false): Promise<string> {
     const messages = createMessages(input);
 
+    if (useGpt4) console.log('Using GPT-4');    
+
     const completion = await this.openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
+      model: useGpt4 ? "gpt-4" : "gpt-3.5-turbo",
       messages: [{ role: "system", content: this.systemMessage }, ...messages],
     });
 
@@ -41,9 +41,7 @@ export class OpenAiClient {
   }
 }
 
-function createMessages(
-  input: ChatInput[]
-): ChatCompletionRequestMessage[] {
+function createMessages(input: ChatInput[]): ChatCompletionRequestMessage[] {
   if (!input) return [];
 
   return input.map((i) => {

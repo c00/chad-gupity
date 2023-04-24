@@ -23,12 +23,17 @@ export class SlackBotApp {
     return this.app.start();
   }
 
-  private stripMentions(text: string) {
-    return text.replace(`<@${this.botUserId}>`, "").trim();
+  private stripFluff(text: string) {
+    return text
+      .replace(`<@${this.botUserId}>`, "")
+      .replace("--v4", "")
+      .replace("--gpt4", "")
+      .trim();
   }
 
   private async respondWithChatCompletion(m: GenericMessageEvent, say: SayFn) {
-    const text = this.stripMentions(m.text);
+    const useGpt4 = m.text.includes("--gpt4") || m.text.includes("--v4");
+    const text = this.stripFluff(m.text);
 
     console.log("Receiving message:", text);
 
@@ -50,14 +55,14 @@ export class SlackBotApp {
 
       const input: ChatCompletionRequestMessage[] = messages.map((m) => ({
         role: m.user === this.botUserId ? "assistant" : "user",
-        content: this.stripMentions(m.text),
+        content: this.stripFluff(m.text),
       }));
 
       prompts.push(...input);
     }
 
     try {
-      const response = await this.openai.getChat(prompts);
+      const response = await this.openai.getChat(prompts, useGpt4);
 
       say({
         text: response,
@@ -96,7 +101,6 @@ export class SlackBotApp {
 
         const text = command.text.replace(`<@${this.botUserId}>`, "").trim();
         const image_url = await this.openai.getImage(text);
-        const summary = "Your Image";
 
         say({
           text: "Here it is!",
@@ -105,14 +109,12 @@ export class SlackBotApp {
               type: "image",
               title: {
                 type: "plain_text",
-                text: summary,
-                // emoji: true,
+                text,
               },
               image_url,
               alt_text: text,
             },
           ],
-          // text: summary,
           channel: command.channel_id,
         });
       } catch (error) {

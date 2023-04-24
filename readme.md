@@ -68,3 +68,7 @@ In channels (public and private) it will only respond if you tag the bot user. I
 In private messages with the bot, tagging is not necessary. It will respond to each message.
 
 The bot will respond to you in the thread. If the message was a root-level message, it will create the thread. If you interact with the bot from a thread, the entire thread will be fed into chatGPT to give a more coherent response.
+
+## Using GPT-4
+
+Add `--v4` or `--gpt4` to any of your messages and it will use `gpt-4` to get an answer. By default it uses `gpt-3.5-turbo`.
