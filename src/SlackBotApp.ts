@@ -1,11 +1,12 @@
 import { App, GenericMessageEvent, SayFn } from "@slack/bolt";
 import { ChatInput, OpenAiClient } from "./OpenAi";
-import { ChatCompletionRequestMessage } from "openai";
+import { ChatCompletionMessageParam } from "openai/resources";
 
 export class SlackBotApp {
   app: App;
   botUserId: string;
   openai: OpenAiClient;
+  verbose = !!process.env.VERBOSE;
 
   constructor() {
     this.app = new App({
@@ -35,7 +36,7 @@ export class SlackBotApp {
     const useGpt4 = m.text.includes("--gpt4") || m.text.includes("--v4");
     const text = this.stripFluff(m.text);
 
-    console.log("Receiving message:", text);
+    if (this.verbose) console.log("Receiving message:", text);
 
     const prompts: ChatInput[] = [];
 
@@ -53,7 +54,7 @@ export class SlackBotApp {
       });
       const messages = result.messages || [];
 
-      const input: ChatCompletionRequestMessage[] = messages.map((m) => ({
+      const input: ChatCompletionMessageParam[] = messages.map((m) => ({
         role: m.user === this.botUserId ? "assistant" : "user",
         content: this.stripFluff(m.text),
       }));
@@ -94,7 +95,7 @@ export class SlackBotApp {
     });
 
     this.app.command("/image", async ({ command, ack, say }) => {
-      console.log("Generating image", command.text);
+      if (this.verbose) console.log("Generating image", command.text);
       try {
         // Acknowledge the command request
         await ack();
