@@ -40,7 +40,7 @@ export class OpenAiClient {
     }
 
     const completion = await this.openai.chat.completions.create({
-      model: useGpt4 ? "gpt-4-1106-preview" : "gpt-3.5-turbo",
+      model: useGpt4 ? "gpt-4o" : "gpt-3.5-turbo",
       messages: [{ role: "system", content: this.systemMessage }, ...messages],
     });
 
