@@ -28,19 +28,22 @@ export class OpenAiClient {
     return response.data[0].url;
   }
 
-  async getChat(input: ChatInput[], useGpt4 = false): Promise<string> {
+  async getChat(input: ChatInput[], useStrongModel = false): Promise<string> {
     const messages = createMessages(input);
+    const model = useStrongModel
+      ? process.env.STRONG_MODEL
+      : process.env.FAST_MODEL;
 
     if (this.verbose) {
-      if (useGpt4) {
-        console.log("Using GPT-4");
+      if (useStrongModel) {
+        console.log("Using Strong Model: ", model);
       } else {
-        console.log("Using GPT-3.5");
+        console.log("Using Fast Model: ", model);
       }
     }
 
     const completion = await this.openai.chat.completions.create({
-      model: useGpt4 ? "gpt-4o" : "gpt-3.5-turbo",
+      model,
       messages: [{ role: "system", content: this.systemMessage }, ...messages],
     });
 
