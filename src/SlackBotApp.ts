@@ -1,6 +1,6 @@
 import { App, GenericMessageEvent, SayFn } from "@slack/bolt";
-import { ChatInput, OpenAiClient } from "./OpenAi";
 import { ChatCompletionMessageParam } from "openai/resources";
+import { ChatInput, OpenAiClient } from "./OpenAi";
 
 export class SlackBotApp {
   app: App;
@@ -29,11 +29,15 @@ export class SlackBotApp {
       .replace(`<@${this.botUserId}>`, "")
       .replace("--v4", "")
       .replace("--gpt4", "")
+      .replace("--strong", "")
       .trim();
   }
 
   private async respondWithChatCompletion(m: GenericMessageEvent, say: SayFn) {
-    const useGpt4 = m.text.includes("--gpt4") || m.text.includes("--v4");
+    const useStrongModel =
+      m.text.includes("--gpt4") ||
+      m.text.includes("--v4") ||
+      m.text.includes("--strong");
     const text = this.stripFluff(m.text);
 
     if (this.verbose) console.log("Receiving message:", text);
@@ -63,7 +67,7 @@ export class SlackBotApp {
     }
 
     try {
-      const response = await this.openai.getChat(prompts, useGpt4);
+      const response = await this.openai.getChat(prompts, useStrongModel);
 
       say({
         text: response,
@@ -132,7 +136,9 @@ export class SlackBotApp {
 
     this.app.command("/system-message", async ({ command, ack }) => {
       if (!command.text.trim()) {
-        ack(`Current System message: ${this.openai.systemMessage}\n\nTo change use /system-message [new system message]`);
+        ack(
+          `Current System message: ${this.openai.systemMessage}\n\nTo change use /system-message [new system message]`
+        );
         return;
       }
 

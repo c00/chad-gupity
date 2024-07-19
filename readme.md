@@ -2,8 +2,6 @@
 
 This is a very simple slackbot that uses the openAI API with chatGPT. It was put together in very little time with very little effort, so don't expect great things.
 
-It currently uses the `gpt-3.5-turbo` model.
-
 ## Setup your Slack Workspace
 
 You will need to setup an app with Slack first. Go to [api.slack.com/apps](https://api.slack.com/apps/) and create a new App.
@@ -39,6 +37,8 @@ OPENAI_KEY=yourkeyhere
 SLACK_APP_TOKEN=yourkeyhere
 SLACK_BOT_TOKEN=yourkeyhere
 SLACK_SIGNING_SECRET=yourkeyhere
+STRONG_MODEL=gpt-4o
+FAST_MODEL=gpt-4o-mini
 ```
 
 Install dependencies:
@@ -53,7 +53,7 @@ Start the app:
 pnpm start
 ```
 
-## Build for docker 
+## Build for docker
 
 ```bash
 docker build . -t thechadster
